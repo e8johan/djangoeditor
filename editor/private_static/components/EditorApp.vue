@@ -10,29 +10,55 @@
     </div>
     <div v-else="">
         <file-tree :node="files" @node_clicked="node_clicked"></file-tree>
+        <prism-editor v-if="code.length" class="code-editor" v-model="code" :language="language" :readonly="true" :lineNumbers="true" :highlight="highlighter"></prism-editor>
     </div>
 </template>
 
 <script>
-import axios from 'axios';
+import FileTree from './FileTree.vue';
 
+import { PrismEditor } from 'vue-prism-editor';
+import "vue-prism-editor/dist/prismeditor.min.css";
+
+import { highlight, languages } from "prismjs/components/prism-core";
+import "prismjs/components/prism-clike";
+import "prismjs/components/prism-javascript";
+import "prismjs/themes/prism-tomorrow.css";
+
+import axios from 'axios';
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
 axios.defaults.xsrfCookieName = "csrftoken";
 
-import FileTree from './FileTree.vue';
-
 export default {
     name: "editor",
-    components: { FileTree, },
+    components: { FileTree, PrismEditor, },
     data: function() { 
         return {
             'status': 'loading',
             'files': [],
+            'code': '',
+            'language': '',
         };
     },
     methods: {
         node_clicked: function(uuid) {
-            console.log(uuid);
+            axios.get('api/files/'+uuid)
+                .then((response) => {
+                    if ('contents' in response.data) {
+                        this.code = response.data.contents;
+                        this.language = response.data.language;
+                    } else {
+                        this.code = '';
+                        this.language = '';
+                    }
+                })
+                .catch((error) => {
+                    this.status = 'error';
+                    console.log(error);
+                });
+        },
+        highlighter: function(code) {
+            return highlight(code, languages.js);
         }
     },
     mounted() {
@@ -59,18 +85,28 @@ export default {
     }
 }
 .spin::before {
-animation: 1.5s linear infinite spinner;
-animation-play-state: inherit;
-border: solid 5px #ffa500;
-border-bottom-color: #1c87c9;
-border-radius: 50%;
-content: "";
-height: 40px;
-width: 40px;
-position: absolute;
-top: 10%;
-left: 10%;
-transform: translate3d(-50%, -50%, 0);
-will-change: transform;
+    animation: 1.5s linear infinite spinner;
+    animation-play-state: inherit;
+    border: solid 5px #ffa500;
+    border-bottom-color: #1c87c9;
+    border-radius: 50%;
+    content: "";
+    height: 40px;
+    width: 40px;
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    transform: translate3d(-50%, -50%, 0);
+    will-change: transform;
+}
+
+.code-editor {
+  background: #2d2d2d;
+  color: #ccc;
+
+  font-family: Fira code, Fira Mono, Consolas, Menlo, Courier, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 5px;
 }
 </style>
