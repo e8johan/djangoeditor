@@ -1,0 +1,19 @@
+{% load compress %}
+{% load private_static %}
+
+<html>
+<head>
+
+    <meta charset="UTF-8">
+
+</head>
+<body>
+
+    <div id="app"></div>
+
+{% compress parcel file editor %}
+    <script src="{% private_static 'js/editor.js' %}"></script>
+{% endcompress %}
+
+</body>
+</html>

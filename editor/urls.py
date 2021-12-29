@@ -7,6 +7,6 @@ app_name = 'editor'
 urlpatterns = [
     path('', views.index, name='index'),
     
-    path('api/files', views.api_files_list),
+    path('api/files/', views.api_files_list),
     path('api/files/<uuid>/', views.api_files_details),
 ]
